@@ -14,12 +14,34 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
+function roundedRectPath(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number
+) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.arcTo(x + w, y, x + w, y + r, r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+  ctx.lineTo(x + r, y + h);
+  ctx.arcTo(x, y + h, x, y + h - r, r);
+  ctx.lineTo(x, y + r);
+  ctx.arcTo(x, y, x + r, y, r);
+  ctx.closePath();
+}
+
 export default function PosterCreator() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [templateImg, setTemplateImg] = useState<HTMLImageElement | null>(null);
   const [templateError, setTemplateError] = useState(false);
+  const [overlayImgs, setOverlayImgs] = useState<HTMLImageElement[]>([]);
   const [photoImg, setPhotoImg] = useState<HTMLImageElement | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
 
@@ -33,11 +55,16 @@ export default function PosterCreator() {
 
   const [status, setStatus] = useState<string | null>(null);
 
-  // Load the template artwork once.
+  // Load the template artwork and any foreground overlay sprites once.
   useEffect(() => {
     loadImage(POSTER_TEMPLATE.src)
       .then(setTemplateImg)
       .catch(() => setTemplateError(true));
+
+    const overlays = POSTER_TEMPLATE.foregroundOverlays ?? [];
+    Promise.all(overlays.map((o) => loadImage(o.src)))
+      .then(setOverlayImgs)
+      .catch(() => setOverlayImgs([]));
   }, []);
 
   // Load the user's uploaded photo whenever it changes.
@@ -59,22 +86,19 @@ export default function PosterCreator() {
     };
   }, [photoUrl]);
 
-  const coverScale = useCallback(
-    (img: HTMLImageElement) => {
-      const { radius } = POSTER_TEMPLATE.photoSlot;
-      return (radius * 2) / Math.min(img.width, img.height);
-    },
-    []
-  );
+  const coverScale = useCallback((img: HTMLImageElement) => {
+    const { width, height } = POSTER_TEMPLATE.photoRect;
+    return Math.max(width / img.width, height / img.height);
+  }, []);
 
   const clampPan = useCallback(
     (img: HTMLImageElement, nextZoom: number, nextPan: { x: number; y: number }) => {
-      const { radius } = POSTER_TEMPLATE.photoSlot;
+      const { width, height } = POSTER_TEMPLATE.photoRect;
       const scale = coverScale(img) * nextZoom;
       const halfW = (img.width * scale) / 2;
       const halfH = (img.height * scale) / 2;
-      const maxX = Math.max(0, halfW - radius);
-      const maxY = Math.max(0, halfH - radius);
+      const maxX = Math.max(0, halfW - width / 2);
+      const maxY = Math.max(0, halfH - height / 2);
       return {
         x: Math.min(maxX, Math.max(-maxX, nextPan.x)),
         y: Math.min(maxY, Math.max(-maxY, nextPan.y)),
@@ -94,16 +118,21 @@ export default function PosterCreator() {
     canvas.height = POSTER_TEMPLATE.height;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const { cx, cy, radius } = POSTER_TEMPLATE.photoSlot;
+    const { x, y, width, height, radius } = POSTER_TEMPLATE.photoRect;
+    const cx = x + width / 2;
+    const cy = y + height / 2;
 
     if (photoImg) {
       const scale = coverScale(photoImg) * zoom;
       const drawW = photoImg.width * scale;
       const drawH = photoImg.height * scale;
 
+      if (templateImg) {
+        ctx.drawImage(templateImg, 0, 0, canvas.width, canvas.height);
+      }
+
       ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      roundedRectPath(ctx, x, y, width, height, radius);
       ctx.clip();
       ctx.drawImage(
         photoImg,
@@ -113,19 +142,16 @@ export default function PosterCreator() {
         drawH
       );
       ctx.restore();
-    } else {
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-      ctx.fillStyle = "#eef1f4";
-      ctx.fill();
-      ctx.restore();
-    }
 
-    if (templateImg) {
+      const overlays = POSTER_TEMPLATE.foregroundOverlays ?? [];
+      overlays.forEach((overlay, i) => {
+        const img = overlayImgs[i];
+        if (img) ctx.drawImage(img, overlay.x, overlay.y);
+      });
+    } else if (templateImg) {
       ctx.drawImage(templateImg, 0, 0, canvas.width, canvas.height);
     }
-  }, [templateImg, photoImg, zoom, pan, coverScale]);
+  }, [templateImg, overlayImgs, photoImg, zoom, pan, coverScale]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -229,9 +255,6 @@ export default function PosterCreator() {
           onPointerUp={onPointerUp}
           onPointerLeave={onPointerUp}
         />
-        {!photoImg && (
-          <div className="poster-canvas-hint">Upload a photo to get started</div>
-        )}
       </div>
 
       <div className="poster-controls">

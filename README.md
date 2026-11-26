@@ -15,42 +15,51 @@ npm run dev
 ## How it works
 
 - `src/config/template.ts` describes the poster artwork: its pixel
-  dimensions and the circular "photo slot" (`cx`, `cy`, `radius`) where the
-  uploaded photo gets composited.
-- `src/components/PosterCreator.tsx` draws the user's photo onto a
-  `<canvas>`, clipped to that circle, then draws the template artwork on
-  top of it. The template PNG must have a **transparent (cut-out) circle**
-  where the photo goes, so the photo shows through and the template's
-  decorative ring/frame sits on top of it.
+  dimensions and `photoRect` — the rounded-rectangle region (`x`, `y`,
+  `width`, `height`, `radius`) where the uploaded photo gets composited.
+- `src/components/PosterCreator.tsx` draws the template PNG as the full
+  poster background (including its own sample photo), then draws the
+  user's uploaded photo on top, clipped to `photoRect` — which exactly
+  covers the sample photo. **No transparency/alpha cutout is needed** in
+  the template file; a plain flattened PNG/JPG export works.
 - Users can drag to reposition the photo and use the zoom slider to crop
   it, then "Download" (saves a PNG) or "Share" (opens the native share
   sheet with the image file on supported mobile browsers, falling back to
   download).
 
-## Swapping in the real poster artwork
+The current template is `public/templates/poster.png` (1024×1535), with
+`photoRect` set to `{ x: 272, y: 458, width: 482, height: 588, radius: 46 }`
+— measured directly from that file's photo frame.
 
-Right now the app ships with a placeholder template
-(`public/templates/poster-template.svg`) so it runs end-to-end out of the
-box. To use the real design:
+The graduation cap graphic dips slightly into the top-right corner of the
+photo frame in the source art, so it would normally get covered by the
+uploaded photo there. `foregroundOverlays` in the config fixes this: it's
+a small transparent-background sprite (`public/templates/cap-overlay.png`,
+pre-extracted from that corner of the original artwork) that gets redrawn
+on top after the photo, at a fixed position, so the cap always stays
+intact regardless of what photo is behind it.
 
-1. Export the poster as a PNG with a transparent circular hole where the
-   photo should appear, and save it to
-   `public/templates/poster-template.png`.
-2. Open that PNG in any image editor (e.g. Photopea, Figma, Photoshop) and
-   read off, in pixels:
-   - the full image width/height
-   - the center (x, y) of the circular hole
-   - its radius
-3. Update `src/config/template.ts`:
+## Swapping in a different poster design
+
+1. Save the new PNG to `public/templates/poster.png` (or update `src` in
+   the config below to point at a new filename).
+2. Open it in any image editor (Photopea, Figma, Photoshop, etc.) and read
+   off, in pixels: the full image width/height, and the photo frame's
+   top-left corner (x, y), width, height, and corner radius.
+3. If any decoration overlaps the photo frame in the new design, crop that
+   fragment out as its own small PNG with a transparent background (erase
+   everything except the decoration) and add it to `foregroundOverlays`
+   with its (x, y) position. Otherwise omit `foregroundOverlays` entirely.
+4. Update `src/config/template.ts`:
 
 ```ts
 export const POSTER_TEMPLATE: PosterTemplate = {
-  id: "mukkam-manjalam-2026",
+  id: "mukkam-manjalam-sargolsav-2026",
   name: "Mukkam Manjalam Sargolsav 2026",
-  src: "/templates/poster-template.png",
+  src: "/templates/poster.png",
   width: 1024,   // real PNG width
-  height: 1536,  // real PNG height
-  photoSlot: { cx: 512, cy: 700, radius: 260 }, // real circle coords
+  height: 1535,  // real PNG height
+  photoRect: { x: 272, y: 458, width: 482, height: 588, radius: 46 },
 };
 ```
 

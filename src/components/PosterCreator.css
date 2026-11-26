@@ -28,6 +28,63 @@
   cursor: grabbing;
 }
 
+.poster-upload-overlay {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  background: #ffffff;
+  padding: 10%;
+}
+
+.poster-upload-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  width: 100%;
+  height: 100%;
+  padding: 1rem;
+  border-radius: 1.25rem;
+  background: linear-gradient(160deg, #1976d2, #0d47a1);
+  color: #ffffff;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(13, 71, 161, 0.35);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  animation: poster-upload-pulse 2.4s ease-in-out infinite;
+}
+
+.poster-upload-overlay:hover .poster-upload-card,
+.poster-upload-overlay:focus-visible .poster-upload-card {
+  transform: scale(1.04);
+  box-shadow: 0 10px 26px rgba(13, 71, 161, 0.45);
+}
+
+.poster-upload-icon {
+  width: clamp(28px, 12%, 52px);
+  height: clamp(28px, 12%, 52px);
+}
+
+.poster-upload-card span {
+  font-weight: 700;
+  font-size: clamp(0.9rem, 4.5vw, 1.2rem);
+  line-height: 1.25;
+}
+
+@keyframes poster-upload-pulse {
+  0%,
+  100% {
+    box-shadow: 0 8px 20px rgba(13, 71, 161, 0.35), 0 0 0 0 rgba(25, 118, 210, 0.4);
+  }
+  50% {
+    box-shadow: 0 8px 20px rgba(13, 71, 161, 0.35), 0 0 0 10px rgba(25, 118, 210, 0);
+  }
+}
+
 .poster-template-error {
   position: absolute;
   inset: 0;
@@ -65,7 +122,16 @@
   background: #ffffff;
   color: #1e7a33;
   border: 2px solid #1e7a33;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.poster-whatsapp-icon {
+  width: 1.3rem;
+  height: 1.3rem;
+  flex-shrink: 0;
 }
 
 .poster-btn:hover:not(:disabled) {

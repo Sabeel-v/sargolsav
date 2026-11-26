@@ -12,15 +12,12 @@
   max-width: 560px;
 }
 
-.page-header h1 {
-  margin: 0 0 0.5rem;
-  font-size: clamp(1.5rem, 4vw, 2.1rem);
-  color: #1e7a33;
-}
-
-.page-header p {
-  margin: 0;
-  color: #555;
+.page-header-logo {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  margin: 0 auto;
 }
 
 main {

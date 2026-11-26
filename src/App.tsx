@@ -6,17 +6,18 @@ function App() {
   return (
     <div className="page">
       <header className="page-header">
-        <h1>{POSTER_TEMPLATE.name}</h1>
-        <p>Upload your photo and create your personal poster in seconds.</p>
+        <img
+          className="page-header-logo"
+          src="/branding/heading-logo.png"
+          alt={POSTER_TEMPLATE.name}
+        />
       </header>
 
       <main>
         <PosterCreator />
       </main>
 
-      <footer className="page-footer">
-        <p>Made with CIER &middot; All processing happens on your device.</p>
-      </footer>
+      
     </div>
   );
 }

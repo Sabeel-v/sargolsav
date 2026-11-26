@@ -255,6 +255,30 @@ export default function PosterCreator() {
           onPointerUp={onPointerUp}
           onPointerLeave={onPointerUp}
         />
+        {!photoImg && (
+          <button
+            type="button"
+            className="poster-upload-overlay"
+            onClick={() => fileInputRef.current?.click()}
+            style={{
+              left: `${(POSTER_TEMPLATE.photoRect.x / POSTER_TEMPLATE.width) * 100}%`,
+              top: `${(POSTER_TEMPLATE.photoRect.y / POSTER_TEMPLATE.height) * 100}%`,
+              width: `${(POSTER_TEMPLATE.photoRect.width / POSTER_TEMPLATE.width) * 100}%`,
+              height: `${(POSTER_TEMPLATE.photoRect.height / POSTER_TEMPLATE.height) * 100}%`,
+              borderRadius: `${(POSTER_TEMPLATE.photoRect.radius / POSTER_TEMPLATE.photoRect.width) * 100}% / ${(POSTER_TEMPLATE.photoRect.radius / POSTER_TEMPLATE.photoRect.height) * 100}%`,
+            }}
+          >
+            <span className="poster-upload-card">
+              <svg viewBox="0 0 24 24" className="poster-upload-icon" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M12 3a1 1 0 0 1 1 1v9.59l2.3-2.3a1 1 0 1 1 1.4 1.42l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.42l2.3 2.3V4a1 1 0 0 1 1-1Z M5 18a1 1 0 0 1 1 1v1h12v-1a1 1 0 1 1 2 0v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1Z"
+                />
+              </svg>
+              <span>Upload Your Photo</span>
+            </span>
+          </button>
+        )}
       </div>
 
       <div className="poster-controls">
@@ -265,13 +289,15 @@ export default function PosterCreator() {
           onChange={handleFileChange}
           className="poster-file-input"
         />
-        <button
-          type="button"
-          className="poster-btn poster-btn-primary"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          {photoImg ? "Change Photo" : "Upload Photo"}
-        </button>
+        {photoImg && (
+          <button
+            type="button"
+            className="poster-btn poster-btn-primary"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            Change Photo
+          </button>
+        )}
 
         {photoImg && (
           <div className="poster-zoom">
@@ -303,6 +329,16 @@ export default function PosterCreator() {
             onClick={handleShare}
             disabled={!photoImg}
           >
+            <svg viewBox="0 0 32 32" className="poster-whatsapp-icon" aria-hidden="true">
+              <path
+                fill="#25D366"
+                d="M16 3C9 3 3.3 8.6 3.3 15.5c0 2.4.7 4.7 1.9 6.7L3 29l7-2.1c1.9 1.1 4 1.6 6 1.6 7 0 12.7-5.6 12.7-12.5S23 3 16 3Z"
+              />
+              <path
+                fill="#fff"
+                d="M23 19.3c-.3.9-1.7 1.7-2.5 1.8-.6.1-1.4.2-4.3-1-3.6-1.5-5.9-5.1-6-5.4-.2-.3-1.4-1.9-1.4-3.6 0-1.7.9-2.6 1.2-2.9.3-.3.6-.4.9-.4h.6c.2 0 .5 0 .7.6.3.7.9 2.4 1 2.6.1.2.2.4 0 .6-.1.2-.2.4-.4.6l-.6.6c-.2.2-.4.4-.2.8.2.3.9 1.6 2 2.5 1.4 1.2 2.5 1.6 2.9 1.8.3.1.5.1.7-.1.2-.3.8-.9 1-1.2.2-.3.4-.2.7-.1l2.1 1c.2.1.4.2.5.3.1.2.1 1-.2 1.9Z"
+              />
+            </svg>
             Share
           </button>
         </div>

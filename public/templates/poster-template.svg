@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1536" viewBox="0 0 1024 1536">
+  <!-- Background with a circular hole cut out at the photo slot (cx=512 cy=700 r=260)
+       so a photo drawn underneath this template on a canvas shows through. -->
+  <path fill="#fdf6e3" fill-rule="evenodd"
+    d="M0,0 H1024 V1536 H0 Z
+       M252,700 a260,260 0 1,0 520,0 a260,260 0 1,0 -520,0 Z"/>
+
+  <!-- bottom green/gold wave -->
+  <path d="M0 1536 L0 1360 Q512 1260 1024 1360 L1024 1536 Z" fill="#1e7a33"/>
+  <path d="M0 1536 L0 1410 Q512 1330 1024 1410 L1024 1536 Z" fill="#f2b705"/>
+
+  <!-- header pill -->
+  <rect x="297" y="40" width="430" height="56" rx="28" fill="#1565c0"/>
+  <text x="512" y="78" font-family="sans-serif" font-size="26" fill="#ffffff" text-anchor="middle">YOUR EVENT TITLE</text>
+
+  <text x="512" y="190" font-family="sans-serif" font-weight="700" font-size="72" fill="#2e7d32" text-anchor="middle">POSTER</text>
+  <text x="512" y="250" font-family="sans-serif" font-weight="700" font-size="56" fill="#1565c0" text-anchor="middle">2026</text>
+
+  <!-- decorative frame ring sitting on top of the photo slot -->
+  <circle cx="512" cy="700" r="268" fill="none" stroke="#ffffff" stroke-width="16"/>
+  <circle cx="512" cy="700" r="278" fill="none" stroke="#f2b705" stroke-width="4"/>
+
+  <!-- footer info pills -->
+  <rect x="140" y="1230" width="330" height="70" rx="35" fill="#2e7d32"/>
+  <text x="305" y="1275" font-family="sans-serif" font-size="30" fill="#ffffff" text-anchor="middle">DATE 1</text>
+  <rect x="550" y="1230" width="330" height="70" rx="35" fill="#f2b705"/>
+  <text x="715" y="1275" font-family="sans-serif" font-size="30" fill="#ffffff" text-anchor="middle">DATE 2</text>
+</svg>

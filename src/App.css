@@ -1,0 +1,36 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1.25rem 3rem;
+  gap: 2rem;
+}
+
+.page-header {
+  text-align: center;
+  max-width: 560px;
+}
+
+.page-header h1 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.5rem, 4vw, 2.1rem);
+  color: #1e7a33;
+}
+
+.page-header p {
+  margin: 0;
+  color: #555;
+}
+
+main {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.page-footer {
+  color: #888;
+  font-size: 0.8rem;
+  text-align: center;
+}

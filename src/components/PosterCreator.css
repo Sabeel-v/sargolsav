@@ -1,0 +1,142 @@
+.poster-creator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.poster-canvas-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  background: #fdf6e3;
+}
+
+.poster-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: none;
+  cursor: grab;
+}
+
+.poster-canvas:active {
+  cursor: grabbing;
+}
+
+.poster-canvas-hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1rem;
+  color: #4a4a4a;
+  background: rgba(253, 246, 227, 0.6);
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.poster-template-error {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  text-align: center;
+  background: #fff3f3;
+  color: #a3281f;
+  font-size: 0.9rem;
+}
+
+.poster-controls {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.poster-file-input {
+  display: none;
+}
+
+.poster-btn {
+  appearance: none;
+  border: none;
+  border-radius: 999px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: #ffffff;
+  color: #1e7a33;
+  border: 2px solid #1e7a33;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.poster-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+}
+
+.poster-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.poster-btn-primary {
+  background: #1e7a33;
+  color: #ffffff;
+  border-color: #1e7a33;
+  width: 100%;
+  max-width: 260px;
+}
+
+.poster-btn-accent {
+  background: #f2b705;
+  color: #3a2c00;
+  border-color: #f2b705;
+}
+
+.poster-zoom {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: #3a2c00;
+}
+
+.poster-zoom input[type="range"] {
+  flex: 1;
+  accent-color: #1e7a33;
+}
+
+.poster-actions {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.poster-hint-text {
+  font-size: 0.85rem;
+  color: #666;
+  text-align: center;
+  margin: 0;
+}
+
+.poster-status {
+  font-size: 0.85rem;
+  color: #a3281f;
+  text-align: center;
+  margin: 0;
+}

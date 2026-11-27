@@ -17,6 +17,34 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
+// Longest side we keep for an uploaded photo. Phone cameras produce
+// 12–50 MP images; redrawing those on every drag frame lags low-end phones
+// and can run them out of memory. 2000px is still sharper than the
+// 482×588 frame even at the maximum 3× zoom.
+const MAX_PHOTO_SIDE = 2000;
+
+type PhotoSource = HTMLImageElement | HTMLCanvasElement;
+
+function downscale(img: HTMLImageElement): PhotoSource {
+  const longest = Math.max(img.naturalWidth, img.naturalHeight);
+  if (longest <= MAX_PHOTO_SIDE) return img;
+  const k = MAX_PHOTO_SIDE / longest;
+  const c = document.createElement("canvas");
+  c.width = Math.round(img.naturalWidth * k);
+  c.height = Math.round(img.naturalHeight * k);
+  const ctx = c.getContext("2d");
+  if (!ctx) return img;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(img, 0, 0, c.width, c.height);
+  return c;
+}
+
+// In-app browsers (Instagram, Facebook, etc.) usually block both file
+// downloads and the share sheet, so we show the image for long-press save.
+const IN_APP_BROWSER = /FBAN|FBAV|FB_IAB|Instagram|Line\/|Snapchat|musical_ly|Bytedance/i.test(
+  typeof navigator !== "undefined" ? navigator.userAgent : ""
+);
+
 function roundedRectPath(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -96,7 +124,7 @@ export default function PosterCreator() {
   const [templateImg, setTemplateImg] = useState<HTMLImageElement | null>(null);
   const [templateError, setTemplateError] = useState(false);
   const [overlayImgs, setOverlayImgs] = useState<HTMLImageElement[]>([]);
-  const [photoImg, setPhotoImg] = useState<HTMLImageElement | null>(null);
+  const [photoImg, setPhotoImg] = useState<PhotoSource | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
 
   const [zoom, setZoom] = useState(1);
@@ -109,6 +137,9 @@ export default function PosterCreator() {
 
   const [status, setStatus] = useState<string | null>(null);
   const [fontReady, setFontReady] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const pendingDelta = useRef({ dx: 0, dy: 0 });
+  const rafId = useRef<number | null>(null);
 
   // Load the template artwork and any foreground overlay sprites once.
   useEffect(() => {
@@ -137,25 +168,31 @@ export default function PosterCreator() {
       return;
     }
     let cancelled = false;
-    loadImage(photoUrl).then((img) => {
-      if (!cancelled) {
-        setPhotoImg(img);
+    loadImage(photoUrl)
+      .then((img) => {
+        if (cancelled) return;
+        setPhotoImg(downscale(img));
         setZoom(1);
         setPan({ x: 0, y: 0 });
-      }
-    });
+      })
+      .catch(() => {
+        if (cancelled) return;
+        // Typically an iPhone HEIC photo on an Android browser.
+        setStatus("Couldn't open that photo. Please choose a JPG or PNG image.");
+        setPhotoUrl(null);
+      });
     return () => {
       cancelled = true;
     };
   }, [photoUrl]);
 
-  const coverScale = useCallback((img: HTMLImageElement) => {
+  const coverScale = useCallback((img: PhotoSource) => {
     const { width, height } = POSTER_TEMPLATE.photoRect;
     return Math.max(width / img.width, height / img.height);
   }, []);
 
   const clampPan = useCallback(
-    (img: HTMLImageElement, nextZoom: number, nextPan: { x: number; y: number }) => {
+    (img: PhotoSource, nextZoom: number, nextPan: { x: number; y: number }) => {
       const { width, height } = POSTER_TEMPLATE.photoRect;
       const scale = coverScale(img) * nextZoom;
       const halfW = (img.width * scale) / 2;
@@ -248,7 +285,18 @@ export default function PosterCreator() {
     dragState.current.lastX = e.clientX;
     dragState.current.lastY = e.clientY;
     const { dx, dy } = toCanvasDelta(dxScreen, dyScreen);
-    setPan((prev) => clampPan(photoImg, zoom, { x: prev.x + dx, y: prev.y + dy }));
+    // Batch moves into one redraw per frame; touch screens can fire
+    // 120+ events a second, which would otherwise redraw for each.
+    pendingDelta.current.dx += dx;
+    pendingDelta.current.dy += dy;
+    if (rafId.current !== null) return;
+    const img = photoImg;
+    rafId.current = requestAnimationFrame(() => {
+      rafId.current = null;
+      const d = pendingDelta.current;
+      pendingDelta.current = { dx: 0, dy: 0 };
+      setPan((prev) => clampPan(img, zoom, { x: prev.x + d.dx, y: prev.y + d.dy }));
+    });
   };
 
   const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -270,20 +318,43 @@ export default function PosterCreator() {
       canvasRef.current?.toBlob((blob) => resolve(blob), "image/png");
     });
 
+  const showPreview = (blob: Blob) => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(URL.createObjectURL(blob));
+  };
+
+  const closePreview = () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+  };
+
   const handleDownload = async () => {
     const blob = await getCanvasBlob();
-    if (!blob) return;
+    if (!blob) {
+      setStatus("Couldn't create the poster image. Please try again.");
+      return;
+    }
+    if (IN_APP_BROWSER) {
+      showPreview(blob);
+      return;
+    }
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
     a.download = "poster.png";
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    a.remove();
+    // Revoking right away cancels the download in Safari and Firefox.
+    setTimeout(() => URL.revokeObjectURL(url), 30_000);
   };
 
   const handleShare = async () => {
     const blob = await getCanvasBlob();
-    if (!blob) return;
+    if (!blob) {
+      setStatus("Couldn't create the poster image. Please try again.");
+      return;
+    }
     const file = new File([blob], "poster.png", { type: "image/png" });
 
     const nav = navigator as Navigator & {
@@ -414,6 +485,18 @@ export default function PosterCreator() {
         {photoImg && <p className="poster-hint-text">Drag your photo to reposition it.</p>}
         {status && <p className="poster-status">{status}</p>}
       </div>
+
+      {previewUrl && (
+        <div className="poster-preview" role="dialog" aria-modal="true">
+          <p className="poster-preview-text">
+            Long-press the poster and choose “Save image”.
+          </p>
+          <img src={previewUrl} alt="Your poster" className="poster-preview-img" />
+          <button type="button" className="poster-btn" onClick={closePreview}>
+            Close
+          </button>
+        </div>
+      )}
     </div>
   );
 }

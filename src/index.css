@@ -9,16 +9,18 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  /* No rubber-band bounce at the page edges (Safari 16+, Chrome). */
+  overscroll-behavior-y: none;
+}
+
 body {
   margin: 0;
   background: #f7f1df;
   color: #222;
 }
 
-#root {
-  min-height: 100vh;
-  min-height: 100svh;
-}
 
 h1,
 h2,

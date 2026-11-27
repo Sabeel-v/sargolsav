@@ -10,6 +10,9 @@
   position: relative;
   width: 100%;
   max-width: 420px;
+  /* Fixed shape (template is 1024×1535) so the page height never depends
+     on the canvas element's own size. */
+  aspect-ratio: 1024 / 1535;
   border-radius: 1rem;
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
@@ -19,7 +22,7 @@
 .poster-canvas {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
 }
 
 .poster-photo-drag {

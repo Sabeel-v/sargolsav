@@ -214,8 +214,10 @@ export default function PosterCreator() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    canvas.width = POSTER_TEMPLATE.width;
-    canvas.height = POSTER_TEMPLATE.height;
+    // Only resize when needed: resetting the size reallocates the canvas
+    // on every redraw, which mobile Safari handles poorly.
+    if (canvas.width !== POSTER_TEMPLATE.width) canvas.width = POSTER_TEMPLATE.width;
+    if (canvas.height !== POSTER_TEMPLATE.height) canvas.height = POSTER_TEMPLATE.height;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const { x, y, width, height, radius } = POSTER_TEMPLATE.photoRect;

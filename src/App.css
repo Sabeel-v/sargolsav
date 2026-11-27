@@ -1,5 +1,6 @@
+/* No viewport-height minimums here: on iPhone, 100vh/100svh change as
+   Safari's toolbar collapses, which made the page jump while scrolling. */
 .page {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;

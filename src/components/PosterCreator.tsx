@@ -5,6 +5,9 @@ import "./PosterCreator.css";
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 3;
 
+// Caption that WhatsApp (and other apps) pre-fill when sharing the poster.
+const SHARE_TEXT = "Mukkam mandalam Sargolsav 2026";
+
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -285,12 +288,16 @@ export default function PosterCreator() {
 
     const nav = navigator as Navigator & {
       canShare?: (data?: { files?: File[] }) => boolean;
-      share?: (data: { files?: File[]; title?: string }) => Promise<void>;
+      share?: (data: { files?: File[]; title?: string; text?: string }) => Promise<void>;
     };
 
     if (nav.canShare?.({ files: [file] }) && nav.share) {
       try {
-        await nav.share({ files: [file], title: POSTER_TEMPLATE.name });
+        await nav.share({
+          files: [file],
+          title: SHARE_TEXT,
+          text: SHARE_TEXT,
+        });
       } catch {
         /* user cancelled share sheet */
       }

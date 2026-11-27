@@ -35,6 +35,54 @@ function roundedRectPath(
   ctx.closePath();
 }
 
+function drawTagline(ctx: CanvasRenderingContext2D) {
+  const t = POSTER_TEMPLATE.tagline;
+  if (!t) return;
+
+  ctx.save();
+  ctx.font = `800 ${t.fontSize}px ${t.fontFamily}`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  const textW = ctx.measureText(t.text).width;
+  const padX = t.fontSize * 0.9;
+  const h = t.fontSize * 1.55;
+  const w = textW + padX * 2;
+  const x = t.centerX - w / 2;
+  const y = t.centerY - h / 2;
+
+  // Badge with soft drop shadow.
+  ctx.shadowColor = "rgba(0, 0, 0, 0.25)";
+  ctx.shadowBlur = 14;
+  ctx.shadowOffsetY = 5;
+  const grad = ctx.createLinearGradient(x, 0, x + w, 0);
+  grad.addColorStop(0, t.colors[0]);
+  grad.addColorStop(1, t.colors[1]);
+  roundedRectPath(ctx, x, y, w, h, h / 2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // White outline, matching the photo frame border.
+  ctx.shadowColor = "transparent";
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = "#ffffff";
+  ctx.stroke();
+
+  // Malayalam glyphs sit visually high on a "middle" baseline; nudge down.
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText(t.text, t.centerX, t.centerY + t.fontSize * 0.08);
+  ctx.restore();
+}
+
+const { photoRect: PR, width: PW, height: PH } = POSTER_TEMPLATE;
+const photoRectStyle: React.CSSProperties = {
+  left: `${(PR.x / PW) * 100}%`,
+  top: `${(PR.y / PH) * 100}%`,
+  width: `${(PR.width / PW) * 100}%`,
+  height: `${(PR.height / PH) * 100}%`,
+  borderRadius: `${(PR.radius / PR.width) * 100}% / ${(PR.radius / PR.height) * 100}%`,
+};
+
 export default function PosterCreator() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -54,9 +102,18 @@ export default function PosterCreator() {
   });
 
   const [status, setStatus] = useState<string | null>(null);
+  const [fontReady, setFontReady] = useState(false);
 
   // Load the template artwork and any foreground overlay sprites once.
   useEffect(() => {
+    const t = POSTER_TEMPLATE.tagline;
+    if (t) {
+      document.fonts
+        .load(`800 ${t.fontSize}px ${t.fontFamily}`, t.text)
+        .catch(() => undefined)
+        .finally(() => setFontReady(true));
+    }
+
     loadImage(POSTER_TEMPLATE.src)
       .then(setTemplateImg)
       .catch(() => setTemplateError(true));
@@ -151,7 +208,9 @@ export default function PosterCreator() {
     } else if (templateImg) {
       ctx.drawImage(templateImg, 0, 0, canvas.width, canvas.height);
     }
-  }, [templateImg, overlayImgs, photoImg, zoom, pan, coverScale]);
+
+    if (templateImg) drawTagline(ctx);
+  }, [templateImg, overlayImgs, photoImg, zoom, pan, coverScale, fontReady]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -170,13 +229,13 @@ export default function PosterCreator() {
     return { dx: dxScreen * scaleX, dy: dyScreen * scaleY };
   };
 
-  const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!photoImg) return;
     (e.target as Element).setPointerCapture(e.pointerId);
     dragState.current = { dragging: true, lastX: e.clientX, lastY: e.clientY };
   };
 
-  const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!dragState.current.dragging || !photoImg) return;
     const dxScreen = e.clientX - dragState.current.lastX;
     const dyScreen = e.clientY - dragState.current.lastY;
@@ -186,7 +245,7 @@ export default function PosterCreator() {
     setPan((prev) => clampPan(photoImg, zoom, { x: prev.x + dx, y: prev.y + dy }));
   };
 
-  const onPointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
+  const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     dragState.current.dragging = false;
     try {
       (e.target as Element).releasePointerCapture(e.pointerId);
@@ -247,26 +306,25 @@ export default function PosterCreator() {
             <code>{POSTER_TEMPLATE.src}</code>.
           </div>
         )}
-        <canvas
-          ref={canvasRef}
-          className="poster-canvas"
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerLeave={onPointerUp}
-        />
+        <canvas ref={canvasRef} className="poster-canvas" />
+        {photoImg && (
+          // Drag surface limited to the photo frame, so swiping anywhere
+          // else on the poster still scrolls the page on touch screens.
+          <div
+            className="poster-photo-drag"
+            style={photoRectStyle}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+          />
+        )}
         {!photoImg && (
           <button
             type="button"
             className="poster-upload-overlay"
             onClick={() => fileInputRef.current?.click()}
-            style={{
-              left: `${(POSTER_TEMPLATE.photoRect.x / POSTER_TEMPLATE.width) * 100}%`,
-              top: `${(POSTER_TEMPLATE.photoRect.y / POSTER_TEMPLATE.height) * 100}%`,
-              width: `${(POSTER_TEMPLATE.photoRect.width / POSTER_TEMPLATE.width) * 100}%`,
-              height: `${(POSTER_TEMPLATE.photoRect.height / POSTER_TEMPLATE.height) * 100}%`,
-              borderRadius: `${(POSTER_TEMPLATE.photoRect.radius / POSTER_TEMPLATE.photoRect.width) * 100}% / ${(POSTER_TEMPLATE.photoRect.radius / POSTER_TEMPLATE.photoRect.height) * 100}%`,
-            }}
+            style={photoRectStyle}
           >
             <span className="poster-upload-card">
               <svg viewBox="0 0 24 24" className="poster-upload-icon" aria-hidden="true">

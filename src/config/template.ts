@@ -14,6 +14,17 @@ export interface ForegroundOverlay {
   y: number;
 }
 
+export interface Tagline {
+  text: string;
+  /** Centre of the badge in poster pixels. */
+  centerX: number;
+  centerY: number;
+  fontSize: number;
+  fontFamily: string;
+  /** Badge fill gradient, left to right. */
+  colors: [string, string];
+}
+
 export interface PosterTemplate {
   id: string;
   name: string;
@@ -30,6 +41,8 @@ export interface PosterTemplate {
    * photo so they're never lost.
    */
   foregroundOverlays?: ForegroundOverlay[];
+  /** Text badge drawn on top of everything (e.g. "I'm participating"). */
+  tagline?: Tagline;
 }
 
 // The template is drawn as the full poster background (including its own
@@ -55,4 +68,14 @@ export const POSTER_TEMPLATE: PosterTemplate = {
     // poster.png, so it survives being drawn over by the uploaded photo.
     { src: "/templates/cap-overlay.png", x: 655, y: 445 },
   ],
+  // Sits in the open space between the photo frame and the date pills,
+  // clear of the books (left) and the music staff (right).
+  tagline: {
+    text: "ഞാനും പങ്കെടുക്കുന്നു",
+    centerX: 512,
+    centerY: 1158,
+    fontSize: 44,
+    fontFamily: '"Baloo Chettan 2", "Noto Sans Malayalam", "Nirmala UI", sans-serif',
+    colors: ["#1e73d8", "#1559b5"],
+  },
 };

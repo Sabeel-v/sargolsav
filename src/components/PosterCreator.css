@@ -138,9 +138,9 @@
   appearance: none;
   border: none;
   border-radius: 999px;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
+  padding: 0.8rem 1.6rem;
+  font-size: 1.05rem;
+  font-weight: 700;
   cursor: pointer;
   background: #ffffff;
   color: #1e7a33;
@@ -148,6 +148,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -162,8 +163,10 @@
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
 }
 
+/* Still clearly readable before a photo is uploaded, just a bit muted. */
 .poster-btn:disabled {
-  opacity: 0.45;
+  opacity: 0.72;
+  box-shadow: none;
   cursor: not-allowed;
 }
 
@@ -175,10 +178,11 @@
   max-width: 260px;
 }
 
+/* Same blue as the "Upload Your Photo" card. */
 .poster-btn-accent {
-  background: #f2b705;
-  color: #3a2c00;
-  border-color: #f2b705;
+  background: linear-gradient(160deg, #1976d2, #0d47a1);
+  color: #ffffff;
+  border-color: #0d47a1;
 }
 
 .poster-zoom {

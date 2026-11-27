@@ -42,35 +42,38 @@ function drawTagline(ctx: CanvasRenderingContext2D) {
   ctx.save();
   ctx.font = `800 ${t.fontSize}px ${t.fontFamily}`;
   ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
+  ctx.textBaseline = "alphabetic";
 
-  const textW = ctx.measureText(t.text).width;
-  const padX = t.fontSize * 0.9;
-  const h = t.fontSize * 1.55;
-  const w = textW + padX * 2;
-  const x = t.centerX - w / 2;
-  const y = t.centerY - h / 2;
+  // Centre on the real ink bounds: Malayalam glyphs don't sit evenly
+  // around a "middle" baseline.
+  const m = ctx.measureText(t.text);
+  const inkH = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
+  const baseline = t.centerY - inkH / 2 + m.actualBoundingBoxAscent;
 
-  // Badge with soft drop shadow.
-  ctx.shadowColor = "rgba(0, 0, 0, 0.25)";
-  ctx.shadowBlur = 14;
-  ctx.shadowOffsetY = 5;
-  const grad = ctx.createLinearGradient(x, 0, x + w, 0);
-  grad.addColorStop(0, t.colors[0]);
-  grad.addColorStop(1, t.colors[1]);
-  roundedRectPath(ctx, x, y, w, h, h / 2);
-  ctx.fillStyle = grad;
-  ctx.fill();
+  // Text with a very soft shadow, just enough to lift it off the background.
+  ctx.shadowColor = "rgba(10, 30, 80, 0.22)";
+  ctx.shadowBlur = 6;
+  ctx.shadowOffsetY = 2;
+  ctx.fillStyle = t.color;
+  ctx.fillText(t.text, t.centerX, baseline);
 
-  // White outline, matching the photo frame border.
+  // Thin yellow accent underline that fades out at both ends.
   ctx.shadowColor = "transparent";
-  ctx.lineWidth = 5;
-  ctx.strokeStyle = "#ffffff";
+  const lineW = m.width * 0.42;
+  const lineY = baseline + m.actualBoundingBoxDescent + t.fontSize * 0.32;
+  const x0 = t.centerX - lineW / 2;
+  const grad = ctx.createLinearGradient(x0, 0, x0 + lineW, 0);
+  grad.addColorStop(0, "rgba(242, 183, 5, 0)");
+  grad.addColorStop(0.2, t.accentColor);
+  grad.addColorStop(0.8, t.accentColor);
+  grad.addColorStop(1, "rgba(242, 183, 5, 0)");
+  ctx.strokeStyle = grad;
+  ctx.lineWidth = Math.max(3, t.fontSize * 0.08);
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(x0, lineY);
+  ctx.lineTo(x0 + lineW, lineY);
   ctx.stroke();
-
-  // Malayalam glyphs sit visually high on a "middle" baseline; nudge down.
-  ctx.fillStyle = "#ffffff";
-  ctx.fillText(t.text, t.centerX, t.centerY + t.fontSize * 0.08);
   ctx.restore();
 }
 

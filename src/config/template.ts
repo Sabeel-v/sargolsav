@@ -21,8 +21,10 @@ export interface Tagline {
   centerY: number;
   fontSize: number;
   fontFamily: string;
-  /** Badge fill gradient, left to right. */
-  colors: [string, string];
+  /** Text colour. */
+  color: string;
+  /** Colour of the thin underline accent. */
+  accentColor: string;
 }
 
 export interface PosterTemplate {
@@ -41,7 +43,7 @@ export interface PosterTemplate {
    * photo so they're never lost.
    */
   foregroundOverlays?: ForegroundOverlay[];
-  /** Text badge drawn on top of everything (e.g. "I'm participating"). */
+  /** Tagline text drawn on top of everything (e.g. "I'm participating"). */
   tagline?: Tagline;
 }
 
@@ -73,9 +75,10 @@ export const POSTER_TEMPLATE: PosterTemplate = {
   tagline: {
     text: "ഞാനും പങ്കെടുക്കുന്നു",
     centerX: 512,
-    centerY: 1158,
-    fontSize: 44,
+    centerY: 1140,
+    fontSize: 50,
     fontFamily: '"Baloo Chettan 2", "Noto Sans Malayalam", "Nirmala UI", sans-serif',
-    colors: ["#1e73d8", "#1559b5"],
+    color: "#1a3a8f",
+    accentColor: "#f2b705",
   },
 };
